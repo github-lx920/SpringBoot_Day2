@@ -1,0 +1,83 @@
+ //导出文章
+    @RequestMapping("/exportArticle")
+    public void exportArticle(HttpServletResponse response){
+        List<Article> articles = articleDao.selectAll();
+        //创建工作簿
+        Workbook workbook = new HSSFWorkbook();
+        //创建工作表
+        Sheet sheet = workbook.createSheet("article");
+        //创建导出样式
+        CellStyle cellStyle = workbook.createCellStyle();
+        //创建字体
+        Font font = workbook.createFont();
+        //设置字体颜色
+        font.setColor(Font.COLOR_RED);
+        //设置加粗
+        font.setBold(true);
+        //设置字体
+        font.setFontName("宋体");
+        //设置居中
+        cellStyle.setAlignment(CellStyle.ALIGN_CENTER);
+        //管理字体样式
+        cellStyle.setFont(font);
+        //处理日期格式
+        DataFormat dataFormat = workbook.createDataFormat();
+        cellStyle.setDataFormat(dataFormat.getFormat("yyyy年MM月dd日 HH时mm分ss秒"));
+        //设置列宽
+        sheet.setColumnWidth(3,30*256);
+        //创建标题栏
+        String[] strings = {"编号","标题","作者","创建日期"};
+        Row row = sheet.createRow(0);
+        for (int i = 0; i < strings.length; i++) {
+            Cell cell = row.createCell(i);
+            cell.setCellValue(strings[i]);
+
+            cell.setCellStyle(cellStyle);
+        }
+        for (int i = 0; i < articles.size(); i++) {
+            //创建数据行对象
+            Row row1 = sheet.createRow(i + 1);
+            row1.createCell(0).setCellValue(articles.get(i).getId());
+            row1.createCell(1).setCellValue(articles.get(i).getTitle());
+            row1.createCell(2).setCellValue(articles.get(i).getAuthor());
+            Cell cell = row1.createCell(3);
+            cell.setCellStyle(cellStyle);
+            cell.setCellValue(articles.get(i).getCreateDate());
+        }
+        try {
+            String fileName = URLEncoder.encode("article", "UTF-8");
+            response.setHeader("content-disponsition","attachment;filename="+fileName);
+            response.setContentType("application/vnd.ms-excel");
+            workbook.write(response.getOutputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+
+
+    //导入文章
+    @RequestMapping("/importArticle")
+    public void importArticle(MultipartFile upload){
+        try {
+            HSSFWorkbook workbook = new HSSFWorkbook(upload.getInputStream());
+            HSSFSheet sheet = workbook.getSheet("article");
+            int lastRowNum = sheet.getLastRowNum();
+            for (int i = 0; i < lastRowNum; i++) {
+                Row row = sheet.getRow(i + 1);
+                String id = row.getCell(0).getStringCellValue();
+                String title = row.getCell(1).getStringCellValue();
+                String author = row.getCell(2).getStringCellValue();
+                Date createDate = row.getCell(3).getDateCellValue();
+                Article article = new Article();
+                article.setId(id);
+                article.setTitle(title);
+                article.setAuthor(author);
+                article.setCreateDate(createDate);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }

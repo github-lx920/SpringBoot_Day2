@@ -1,0 +1,23 @@
+server:
+  port: 8989  #端口号
+  context-path: /SpringBoot_Day2
+  jsp-servlet:
+    init-parameters:
+      development: true  #开启jsp热部署
+spring:
+  datasource:
+    type: org.apache.commons.dbcp.BasicDataSource  #使用DBCP连接池
+    driver-class-name: com.mysql.jdbc.Driver   #连接数据库的驱动
+    url: jdbc:mysql://localhost:3306/novel?characterEncoding=utf-8   #连接数据库的url
+    username: root
+    password: root
+  mvc:
+    view:
+      prefix: /
+      suffix: .jsp
+  http:
+    multipart:
+      max-file-size: 209715200   #单位是字节
+mybatis:
+  type-aliases-package: com.baizhi.entity      #起别名
+  mapper-locations: classpath:com/baizhi/mapper/*Mapper.xml  #mapper文件的注册
